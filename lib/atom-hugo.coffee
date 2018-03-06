@@ -147,9 +147,12 @@ module.exports = AtomHugo =
 
     # Show notifications for output and error messages
     @serverCmd.stdout.on 'data', (data) ->
-      shell.openExternal('http://localhost:2897')
-      atom.notifications.addSuccess data.toString()
+      resultString = data.toString()
+      resultUrl = resultString.match(RegExp(/(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm))
+      if resultUrl != null and resultUrl.length > 0 then shell.openExternal(resultUrl[0]) else null
+      atom.notifications.addSuccess resultString
     @serverCmd.stderr.on 'data', (data) -> atom.notifications.addError data.toString()
+
 
   killServer: ->
     if @serverCmd != null then @serverCmd.kill()
