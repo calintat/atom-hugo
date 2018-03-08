@@ -134,16 +134,17 @@ module.exports = AtomHugo =
   server: ->
     # Check if server is already running and kill it
     @killServer()
-
-    @serverCmd = spawn 'hugo', [
-      'server',
-      "-s=#{atom.project.getPaths()[0]}",
-      "-D=#{atom.config.get('atom-hugo.server.buildDrafts')}",
-      "-E=#{atom.config.get('atom-hugo.server.buildExpired')}",
-      "-F=#{atom.config.get('atom-hugo.server.buildFuture')}",
-      "-w=#{atom.config.get('atom-hugo.server.watch')}",
-      "-p=2897"
-    ]
+    
+    projectPath = atom.project.getPaths()[0]
+    @serverCmd = spawn('hugo', [
+      'server'
+      "-s=\"#{projectPath}\""
+      "-D=#{atom.config.get('atom-hugo.build.buildDrafts')}"
+      "-E=#{atom.config.get('atom-hugo.build.buildExpired')}"
+      "-F=#{atom.config.get('atom-hugo.build.buildFuture')}"
+      '--watch'
+      '--port=2897'
+    ], shell: true)
 
     # Show notifications for output and error messages
     @serverCmd.stdout.on 'data', (data) ->
@@ -155,4 +156,7 @@ module.exports = AtomHugo =
 
 
   killServer: ->
-    if @serverCmd != null then @serverCmd.kill()
+      try
+        @serverCmd.kill()
+      catch error
+        hugoKill = spawn('kill', ['-9','\`ps -aef | grep \'hugo\' | awk \'NR==1 { print $2;}\'\`'], shell: true)
